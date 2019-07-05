@@ -27,4 +27,15 @@ Pod::Spec.new do |s|
   s.xcconfig = { 'OTHER_LDFLAGS' => '-lObjC' }
   s.vendored_frameworks = 'SKYLINK.framework'
   s.preserve_paths = 'SKYLINK.framework'
+
+  s.default_subspec = 'Core'
+
+  s.subspec 'Core' do |cs|
+    cs.source_files =  'Code/*.h', 'Vendor/LibComponentLogging/Core', 'Vendor/LibComponentLogging/NSLog'
+    cs.header_dir   =  'RestKit'
+
+    cs.dependency 'GoogleWebRTC'
+    cs.dependency 'RestKit/Network'
+    cs.dependency 'RestKit/CoreData'
+  end
 end
