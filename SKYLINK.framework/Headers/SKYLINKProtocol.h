@@ -146,10 +146,30 @@
  */
 - (void)connection:(nonnull SKYLINKConnection *)connection didToggleVideo:(BOOL)isMuted peerId:(null_unspecified NSString *)peerId;
 
+/*!
+ @method
+ @abstract Called when a peer mutes/unmutes its video.
+ @param connection The underlying connection object.
+ @param skylinkMedia The Skylink media object that is changed.
+ @param peerId The unique id of the peer.
+ */
 - (void)connection:(nonnull SKYLINKConnection *)connection didChangeSkylinkMedia:(nonnull SKYLINKMedia *)skylinkMedia peerId:(null_unspecified NSString *)peerId;
 
+/*!
+ @method
+ @abstract Called when a peer mutes/unmutes its video.
+ @param connection The underlying connection object.
+ @param videoSize The new video size.
+ @param skylinkMedia The Skylink media object that is changed.
+ */
 - (void)connection:(nonnull SKYLINKConnection *)connection didChangeVideoSize:(CGSize)videoSize ofSkylinkMeida:(nonnull SKYLINKMedia *)skylinkMedia;
 
+/*!
+ @method
+ @abstract Called when a peer mutes/unmutes its video.
+ @param connection The underlying connection object.
+ @param localMedia The newly created local Skylink media object.
+ */
 - (void)connection:(nonnull SKYLINKConnection *)connection didCreateLocalMedia:(nonnull SKYLINKMedia *)localMedia;
 @end
 
@@ -185,12 +205,12 @@
 
 /*!
  @method
- @abstract xx
- @param connection <#connection description#>
- @param message <#message description#>
- @param isPrivate <#isPrivate description#>
- @param sender <#sender description#>
- @param targets <#targets description#>
+ @abstract Called when receving a data channel message
+ @param connection The underlying connection object.
+ @param message User defined message. May be an NSString, NSDictionary or NSArray.
+ @param isPrivate Flag to specify whether the message was private.
+ @param sender The message sender
+ @param targets The message receiver
  */
 - (void)connection:(nonnull SKYLINKConnection *)connection didReceiveDCMessage:(null_unspecified id)message isPrivate:(BOOL)isPrivate sender:(null_unspecified NSString *)sender targets:(null_unspecified id)targets;
 
@@ -328,45 +348,46 @@
 
 /*!
  @method
- @abstract xx
- @param connection <#connection description#>
- @param statsDict <#statsDict description#>
+ @abstract Called if the remote peer's stats are changed
+ @param connection The underlying connection object.
+ @param statsDict The stats dictionary
+ @param peerID The peer id that is changed
  */
 - (void)connection:(nonnull SKYLINKConnection *)connection didChangeStats:(nonnull NSDictionary<NSString *, id> *)statsDict ofPeerID:(nonnull NSString *)peerID;
 
 /*!
  @method
- @abstract xx
- @param connection <#connection description#>
- @param statsDict <#statsDict description#>
- @param width <#width description#>
- @param height <#height description#>
- @param fps <#fps description#>
- @param peerID <#peerID description#>
+ @abstract Called when the remote peer's input stats are changed
+ @param connection The underlying connection object.
+ @param statsDict The stats dictionary
+ @param width The video width
+ @param height The video height
+ @param fps The video frame rate
+ @param peerID The peer id for the input stats
  */
 - (void)connection:(nonnull SKYLINKConnection *)connection didInputVideoResolutionChange:(nonnull NSDictionary<NSString *, id> *)statsDict width:(NSInteger)width height:(NSInteger)height fps:(NSInteger)fps ofPeerID:(nonnull NSString *)peerID;
 
 /*!
  @method
- @abstract xx
- @param connection <#connection description#>
- @param statsDict <#statsDict description#>
- @param width <#width description#>
- @param height <#height description#>
- @param fps <#fps description#>
- @param peerID <#peerID description#>
+ @abstract Called when the received stats are changed
+ @param connection The underlying connection object.
+ @param statsDict The stats dictionary
+ @param width The video width
+ @param height The video height
+ @param fps The video frame rate
+ @param peerID The peer id for the input stats
  */
 - (void)connection:(nonnull SKYLINKConnection *)connection didReceivedVideoResolutionChange:(nonnull NSDictionary<NSString *, id> *)statsDict width:(NSInteger)width height:(NSInteger)height fps:(NSInteger)fps ofPeerID:(nonnull NSString *)peerID;
 
 /*!
  @method
- @abstract xx
- @param connection <#connection description#>
- @param statsDict <#statsDict description#>
- @param width <#width description#>
- @param height <#height description#>
- @param fps <#fps description#>
- @param peerID <#peerID description#>
+ @abstract Called when the sent stats are changed
+ @param connection The underlying connection object.
+ @param statsDict The stats dictionary
+ @param width The video width
+ @param height The video height
+ @param fps The video frame rate
+ @param peerID The peer id for the input stats
  */
 - (void)connection:(nonnull SKYLINKConnection *)connection didSentVideoResolutionChange:(nonnull NSDictionary<NSString *, id> *)statsDict width:(NSInteger)width height:(NSInteger)height fps:(NSInteger)fps ofPeerID:(nonnull NSString *)peerID;
 @end

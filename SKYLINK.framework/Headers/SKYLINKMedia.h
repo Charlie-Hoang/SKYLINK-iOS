@@ -45,7 +45,7 @@ typedef enum SKYLINKMediaState {
 /*!
  @method
  @abstract Get the mediaID of the SkylinkMedia object.
- @discussion xxx.
+ @discussion NoDis.
  @return The mediaID
  */
 - (nonnull NSString *)skylinkMediaID;
@@ -53,7 +53,7 @@ typedef enum SKYLINKMediaState {
 /*!
  @method
  @abstract Get the media type.
- @discussion xxx.
+ @discussion NoDis.
  @return The media type
  */
 - (SKYLINKMediaType)skylinkMediaType;
@@ -61,7 +61,7 @@ typedef enum SKYLINKMediaState {
 /*!
  @method
  @abstract Gte the current media state.
- @discussion xxx.
+ @discussion NoDis.
  @return The media state
  */
 - (SKYLINKMediaState)skylinkMediaState;
@@ -69,7 +69,7 @@ typedef enum SKYLINKMediaState {
 /*!
  @method
  @abstract Get the previous media state.
- @discussion xxx.
+ @discussion NoDis.
  @return The previous media state
  */
 - (SKYLINKMediaState)skylinkPreviousMediaState;
@@ -77,7 +77,7 @@ typedef enum SKYLINKMediaState {
 /*!
  @method
  @abstract Get the video track if this media is an video.
- @discussion xxx.
+ @discussion NoDis.
  @return The video track, if this is media is a video
  */
 - (nullable RTCVideoTrack *)skylinkVideoTrack;
@@ -85,7 +85,7 @@ typedef enum SKYLINKMediaState {
 /*!
  @method
  @abstract Get the audio track if this media is an audio.
- @discussion xxx.
+ @discussion NoDis.
  @return The audio track, if this is media is an audio
  */
 - (nullable RTCAudioTrack *)skylinkAudioTrack;
@@ -93,7 +93,7 @@ typedef enum SKYLINKMediaState {
 /*!
  @method
  @abstract The video view contained in the media.
- @discussion xxx.
+ @discussion NoDis.
  @return The video view
  */
 - (nullable UIView *)skylinkVideoView;
@@ -101,7 +101,7 @@ typedef enum SKYLINKMediaState {
 /*!
  @method
  @abstract Check if this SkylinkMedia represents a video.
- @discussion xxx.
+ @discussion NoDis.
  @return If this media is a video
  */
 - (BOOL)isVideo;
@@ -109,7 +109,7 @@ typedef enum SKYLINKMediaState {
 /*!
  @method
  @abstract Check if this SkylinkMedia is a custom video.
- @discussion xxx.
+ @discussion NoDis.
  @return If this media is a custom video
  */
 - (BOOL)isCustom;
@@ -117,9 +117,11 @@ typedef enum SKYLINKMediaState {
 /*!
  @method
  @abstract Get the custom video capturer.
- @discussion xxx.
+ @discussion NoDis.
  @return The custom video capturer or nil
  */
+#ifdef Custom_Video
 - (nullable RTCCameraVideoCapturer *)getCustomVideoCapturer;
+#endif
 @end
 

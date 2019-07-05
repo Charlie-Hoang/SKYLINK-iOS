@@ -390,3 +390,243 @@ if (self.mediaDelegate && [self.mediaDelegate respondsToSelector:@selector(conne
 self.localVideoView.videoTrack = nil;
 [self.localVideoView renderFrame:nil];
 }
+
+
+
+
+
+
+
+
+
+/// stop capturing
+- (void)stopLocalMediaWithMeidaID:(NSString *)mediaID callback:(void (^) (NSError *error))callback
+{
+if (!mediaID) {
+callback([NSError errorWithDomain:@"io.temasys.SKYLINK" code:-4 userInfo:@{NSLocalizedDescriptionKey : @"You must provide a mediaID"}]);
+return;
+}
+if (![[self.localPeer.localSkylinkMediaMap allKeys] containsObject:mediaID]) {
+callback([NSError errorWithDomain:@"io.temasys.SKYLINK" code:-5 userInfo:@{NSLocalizedDescriptionKey : @"The mediaID you provided is not contained inside the map"}]);
+return;
+}
+SKYLINKMedia *localMedia = self.localPeer.localSkylinkMediaMap[mediaID];
+switch (localMedia.mediaType) {
+case SKYLINKMediaTypeVideoScreen:
+{
+if (![[RPScreenRecorder sharedRecorder] isRecording]) {
+callback([NSError errorWithDomain:@"io.temasys.SKYLINK" code:-3 userInfo:@{NSLocalizedDescriptionKey : @"You haven't started the sharing"}]);
+return;
+}
+[self.handler broadcastFinishedWithCallback:callback];
+
+localMedia.mediaType = SKYLINKMediaTypeVideoScreen;
+localMedia.mediaState = SKYLINKMediaStateUnavailable;
+localMedia.previousMediaState = SKYLINKMediaStateActive;
+localMedia.videoView = nil;
+
+for (SKYLINKPeerHolder *remotePeer in self.peerHolderPool.allValues) {
+for (RTCRtpTransceiver *transceiver in remotePeer.peerConnection.transceivers) {
+if ([transceiver.sender.senderId isEqualToString:_v1senderId ? _v1senderId : WEBRTC_SCREEN_VIDEO]) {
+localMedia.transceiverMid = transceiver.mid;
+localMedia.rtpTransceiver = transceiver;
+localMedia.rtpSender = transceiver.sender;
+[remotePeer.peerConnection removeTrack:transceiver.sender];
+}
+}
+}
+
+dispatch_async(dispatch_get_main_queue(), ^{
+[self.screenVideoView.videoTrack removeRenderer:self.screenVideoView];
+self.screenVideoView.videoTrack = nil;
+[self.screenVideoView renderFrame:nil];
+});
+
+[self.localPeer.localSkylinkMediaMap removeObjectForKey:localMedia.mediaID];
+
+// send message
+for (SKYLINKPeerHolder *remotePeer in self.peerHolderPool.allValues) {
+[remotePeer.localSkylinkMediaMap removeObjectForKey:_localScreenMediaId];
+// only need to send a new offer to the remote
+[self sendOfferForUnifiedPlanOf:remotePeer.tid];
+}
+
+// trigger local delegate callback
+dispatch_async(dispatch_get_main_queue(), ^{
+if (self.mediaDelegate && [self.mediaDelegate respondsToSelector:@selector(connection:didChangeSkylinkMedia:peerId:)]) {
+[self.mediaDelegate connection:self didChangeSkylinkMedia:localMedia peerId:self.localPeer.mid];
+}
+});
+_localScreenMediaId = nil;
+}
+break;
+case SKYLINKMediaTypeVideoCamera:
+{
+if (self->haveVideoSend && [self.cameraVideoView.videoTrack isEnabled] && _capturer) {
+if ([_capturer.captureSession isRunning]) {
+[_capturer.captureSession stopRunning];
+SKILog(@"Local video stopped.");
+localMedia.mediaType = SKYLINKMediaTypeVideoCamera;
+localMedia.mediaState = SKYLINKMediaStateUnavailable;
+localMedia.previousMediaState = SKYLINKMediaStateActive;
+localMedia.videoView = nil;
+
+dispatch_async(dispatch_get_main_queue(), ^{
+[self.cameraVideoView.videoTrack removeRenderer:self.cameraVideoView];
+self.cameraVideoView.videoTrack = nil;
+[self.cameraVideoView renderFrame:nil];
+});
+for (SKYLINKPeerHolder *remotePeer in self.peerHolderPool.allValues) {
+for (RTCRtpTransceiver *transceiver in remotePeer.peerConnection.transceivers) {
+/**
+for (SKYLINKMedia *media in remotePeer.localSkylinkMediaMap.allValues) {
+if ([transceiver.sender isEqual:media.rtpSender]) {
+localMedia.transceiverMid = transceiver.mid;
+localMedia.rtpTransceiver = transceiver;
+localMedia.rtpSender = transceiver.sender;
+[self.peerConnectionU removeTrack:transceiver.sender];
+}
+}
+*/
+if ([transceiver.sender.senderId isEqualToString:SKYLINK_CAMERA_VIDEO]) {
+localMedia.transceiverMid = transceiver.mid;
+localMedia.rtpTransceiver = transceiver;
+localMedia.rtpSender = transceiver.sender;
+[remotePeer.peerConnection removeTrack:transceiver.sender];
+}
+}
+}
+
+[self.localPeer.localSkylinkMediaMap removeObjectForKey:localMedia.mediaID];
+// send message
+for (SKYLINKPeerHolder *remotePeer in self.peerHolderPool.allValues) {
+[remotePeer.localSkylinkMediaMap removeObjectForKey:_localCameraMediaId];
+// only need to send a new offer to the remote
+[self sendOfferForUnifiedPlanOf:remotePeer.tid];
+}
+
+dispatch_async(dispatch_get_main_queue(), ^{
+if (self.mediaDelegate && [self.mediaDelegate respondsToSelector:@selector(connection:didChangeSkylinkMedia:peerId:)]) {
+[self.mediaDelegate connection:self didChangeSkylinkMedia:localMedia peerId:self.localPeer.mid];
+}
+});
+} else {
+callback([NSError errorWithDomain:@"io.temasys.SKYLINK" code:-6 userInfo:@{NSLocalizedDescriptionKey : @"Your video had already been stopped."}]);
+return;
+}
+}
+_localCameraMediaId = nil;
+_capturer = nil;
+self.cameraDevice = nil;
+}
+break;
+case SKYLINKMediaTypeAudio:
+{
+if (!self.client) return;
+if (haveAudioSend) {
+[self.localAudioTrack setIsEnabled:NO];
+SKILog(@"Sending muteAudio = %@", [SKYLINKUtilities getBoolString:NO]);
+[self.client sendGroupMessage:@{@"type": @"muteAudioEvent", @"mid": self.client.webResponse.sid, @"rid": self.client.webResponse.roomId, @"muted": @(YES)}];
+localMedia.mediaType = SKYLINKMediaTypeAudio;
+localMedia.mediaState = SKYLINKMediaStateUnavailable;
+localMedia.previousMediaState = SKYLINKMediaStateActive;
+
+// send message
+for (SKYLINKPeerHolder *remotePeer in self.peerHolderPool.allValues) {
+for (RTCRtpTransceiver *transceiver in remotePeer.peerConnection.transceivers) {
+if ([transceiver.sender.senderId isEqualToString:SKYLINK_AUDIO]) {
+localMedia.transceiverMid = transceiver.mid;
+localMedia.rtpTransceiver = transceiver;
+localMedia.rtpSender = transceiver.sender;
+[remotePeer.peerConnection removeTrack:transceiver.sender];
+}
+}
+}
+
+[self.localPeer.localSkylinkMediaMap removeObjectForKey:localMedia.mediaID];
+for (SKYLINKPeerHolder *remotePeer in self.peerHolderPool.allValues) {
+[remotePeer.localSkylinkMediaMap removeObjectForKey:_localAudioMediaId];
+// only need to send a new offer to the remote
+[self sendOfferForUnifiedPlanOf:remotePeer.tid];
+}
+
+dispatch_async(dispatch_get_main_queue(), ^{
+if (self.mediaDelegate && [self.mediaDelegate respondsToSelector:@selector(connection:didChangeSkylinkMedia:peerId:)]) {
+[self.mediaDelegate connection:self didChangeSkylinkMedia:localMedia peerId:self.localPeer.mid];
+}
+});
+}
+_localAudioMediaId = nil;
+}
+break;
+case SKYLINKMediaTypeVideoCustom:
+{
+if (self->haveVideoSend && [self.cameraVideoView.videoTrack isEnabled]) {
+if ([_capturer.captureSession isRunning]) {
+[_capturer.captureSession stopRunning];
+SKILog(@"Local video stopped.");
+localMedia.mediaType = SKYLINKMediaTypeVideoCustom;
+localMedia.mediaState = SKYLINKMediaStateUnavailable;
+localMedia.previousMediaState = SKYLINKMediaStateActive;
+localMedia.videoView = nil;
+
+dispatch_async(dispatch_get_main_queue(), ^{
+[self.cameraVideoView.videoTrack removeRenderer:self.cameraVideoView];
+self.cameraVideoView.videoTrack = nil;
+[self.cameraVideoView renderFrame:nil];
+});
+
+for (SKYLINKPeerHolder *remotePeer in self.peerHolderPool.allValues) {
+for (RTCRtpTransceiver *transceiver in remotePeer.peerConnection.transceivers) {
+/**
+for (SKYLINKMedia *media in remotePeer.localSkylinkMediaMap.allValues) {
+if ([transceiver.sender isEqual:media.rtpSender]) {
+localMedia.transceiverMid = transceiver.mid;
+localMedia.rtpTransceiver = transceiver;
+localMedia.rtpSender = transceiver.sender;
+[self.peerConnectionU removeTrack:transceiver.sender];
+}
+}
+*/
+if ([transceiver.sender.senderId isEqualToString:SKYLINK_CAMERA_VIDEO]) {
+localMedia.transceiverMid = transceiver.mid;
+localMedia.rtpTransceiver = transceiver;
+localMedia.rtpSender = transceiver.sender;
+[remotePeer.peerConnection removeTrack:transceiver.sender];
+}
+}
+}
+[self.localPeer.localSkylinkMediaMap removeObjectForKey:localMedia.mediaID];
+// send message
+for (SKYLINKPeerHolder *remotePeer in self.peerHolderPool.allValues) {
+[remotePeer.localSkylinkMediaMap removeObjectForKey:_localCameraMediaId];
+// only need to send a new offer to the remote
+[self sendOfferForUnifiedPlanOf:remotePeer.tid];
+}
+
+dispatch_async(dispatch_get_main_queue(), ^{
+if (self.mediaDelegate && [self.mediaDelegate respondsToSelector:@selector(connection:didChangeSkylinkMedia:peerId:)]) {
+[self.mediaDelegate connection:self didChangeSkylinkMedia:localMedia peerId:self.localPeer.mid];
+}
+});
+} else {
+callback([NSError errorWithDomain:@"io.temasys.SKYLINK" code:-6 userInfo:@{NSLocalizedDescriptionKey : @"Your video had already been stopped."}]);
+return;
+}
+}
+_localCameraMediaId = nil;
+_capturer = nil;
+self.cameraDevice = nil;
+}
+break;
+case SKYLINKMediaTypeVideo:
+{
+callback([NSError errorWithDomain:@"io.temasys.SKYLINK" code:-8 userInfo:@{NSLocalizedDescriptionKey : @"This is read only, please don't send this in"}]);
+return;
+}
+break;
+default:
+callback([NSError errorWithDomain:@"io.temasys.SKYLINK" code:-8 userInfo:@{NSLocalizedDescriptionKey : @"This value is not supported"}]);
+break;
+}
+}

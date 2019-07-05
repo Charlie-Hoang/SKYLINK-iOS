@@ -12,6 +12,11 @@
 #import "SKYLINKMedia.h"
 
 /*!
+ @abstract If you want to implement system level screen sharing, please comment this line
+*/
+#define Custom_Video
+
+ /*!
  @enum
  @abstract SKYLINKAssetType
  @description Asset types to help the framework read the files.
@@ -73,9 +78,11 @@ extern NSString * _Nonnull const SKYLINKRequiresPermissionNotification;
  */
 @property(nonatomic, weak) id<SKYLINKConnectionRecordingDelegate> _Null_unspecified recordingDelegate;
 /**
- 
+ @property
+ @abstract delegate related to stats, implementing the SKYLINKConnectionStatsDelegate protocol.
  */
 @property(nonatomic, weak) id<SKYLINKConnectionStatsDelegate> _Null_unspecified statsDelegate;
+
 /*!
  @name Peer Id
  */
@@ -321,7 +328,6 @@ extern NSString * _Nonnull const SKYLINKRequiresPermissionNotification;
  */
 - (nonnull id)getUserInfo:(null_unspecified NSString *)peerId;
 
-
 /*!
  @method
  @abstract Get room ID.
@@ -329,7 +335,6 @@ extern NSString * _Nonnull const SKYLINKRequiresPermissionNotification;
  @discussion This is generally not needed.
  */
 - (nonnull NSString *)roomId;
-
 
 /*!
  @name Utility
@@ -350,7 +355,6 @@ extern NSString * _Nonnull const SKYLINKRequiresPermissionNotification;
  */
 + (void)setVerbose:(BOOL)verbose;
 
-
 /*!
  @method
  @abstract Calculate credentials to be used by the connection.
@@ -364,103 +368,122 @@ extern NSString * _Nonnull const SKYLINKRequiresPermissionNotification;
 
 /*!
  @method
- @abstract xx
- @param width <#width description#>
- @param height <#height description#>
- @param fps <#fps description#>
- @param callback <#callback description#>
+ @abstract You may use this to set your local input stats
+ @param width Width you want to set
+ @param height Height you want to set
+ @param fps Frame rate you want to set
+ @param callback Skylink empty callback
  */
 - (void)setInputVideoResolutionToWidth:(NSUInteger)width height:(NSUInteger)height fps:(NSUInteger)fps callback:(void (^ _Null_unspecified) (void))callback;
 
 /*!
  @method
- @abstract xx
- @param callback <#callback description#>
+ @abstract Get all the stats for your local input video
+ @param callback Skylink callback contains the width height and frame rate
  */
 - (void)getInputVideoResolutionCallback:(void (^ _Null_unspecified) (id _Nonnull responseObject, NSInteger width, NSInteger height, NSInteger fps))callback;
 
 /*!
  @method
- @abstract xx
- @param peerID <#peerID description#>
- @param callback <#callback description#>
+ @abstract Get all the stats of your received remote video
+ @param peerID The remote peer id
+ @param callback Skylink callback contains the width height and frame rate
  */
 - (void)getReceivedVideoResolutionOfPeerID:(nullable NSString *)peerID callback:(void (^ _Null_unspecified) (id _Nonnull responseObject, NSInteger width, NSInteger height, NSInteger fps))callback;
 
 /*!
  @method
- @abstract xx
- @param peerID <#peerID description#>
- @param callback <#callback description#>
+ @abstract Get all the stats you sent to the remote peer
+ @param peerID The remote peer id
+ @param callback Skylink callback contains the width height and frame rate
  */
 - (void)getSentVideoResolutionOfPeerID:(nullable NSString *)peerID callback:(void (^ _Null_unspecified) (id _Nonnull responseObject, NSInteger width, NSInteger height, NSInteger fps))callback;
 
 /*!
  @method
- @abstract xx
- @param callback <#callback description#>
+ @abstract Get the current camera captured format
+ @param callback Skylink callback with the current format
  */
 - (void)getCaptureFormatCallback:(void (^ _Null_unspecified) (AVCaptureDeviceFormat * _Null_unspecified format))callback;
 
 /*!
  @method
- @abstract xx
- @param callback <#callback description#>
+ @abstract Get all the supported camera capture formats
+ @param callback Skylink callback with all the supported formats
  */
 - (void)getCaptureFormatsCallback:(void (^ _Null_unspecified) (NSArray<AVCaptureDeviceFormat *> * _Null_unspecified formats))callback;
 
 /*!
  @method
- @abstract xx
- @param callback <#callback description#>
+ @abstract Get the current video device
+ @param callback Skylink callback with the device name
  */
 - (void)getCurrentVideoDeviceCallback:(void (^ _Null_unspecified) (AVCaptureDevice * _Null_unspecified device))callback;
 
 /*!
  @method
- @abstract xx
- @param callback <#callback description#>
+ @abstract Get the current camera name
+ @param callback Skylink callback with the camera name
  */
 - (void)getCurrentCameraNameCallback:(void (^ _Null_unspecified) (NSString * _Null_unspecified name))callback;
 
 /*!
  @method
- @abstract xx
- @param peerID <#peerID description#>
- @param callback <#callback description#>
+ @abstract Get the full WebRTC stats
+ @param peerID The remote peer id
+ @param callback Skylink callback with an object containing all the WebRTC stats
  */
 - (void)getFullStatsReportOfPeerID:(nullable NSString *)peerID callback:(void (^ _Null_unspecified) (id _Nonnull responseObject))callback;
 
 /*!
  @method
- @abstract xx
- @param viewController <#viewController description#>
- @param callback <#callback description#>
+ @abstract Start a local media with a type
+ @param mediaType The type of Skylink media you want to start
+ @param viewController Start from which view controller, usually used for screen sharing, can be nil
+ @param callback Skylink callback with an error message
  */
-//- (void)startInAppScreenSharingFromViewController:(UIViewController * _Nonnull)viewController callback:(void (^ _Null_unspecified) (NSError * _Nullable error))callback;
-
-/*!
- @method
- @abstract xx
- @param callback <#callback description#>
- */
-//- (void)stopInAppScreenSharingWithCallback:(void (^ _Null_unspecified) (NSError * _Nullable error))callback;
-
-/*!
- @method
- @abstract xx
- @param sampleBuffer <#sampleBuffer description#>
- */
-- (void)processSampleBuffer:(CMSampleBufferRef _Nonnull)sampleBuffer;
-
 - (void)startLocalMediaWithMediaType:(SKYLINKMediaType)mediaType fromViewController:(UIViewController * _Null_unspecified)viewController callback:(void (^ _Null_unspecified) (NSError * _Nullable error))callback;
 
+/*!
+ @method
+ @abstract Stop a local media bu the media id
+ @param mediaID The unique media id of this Skylink media object
+ @param callback Skylink callback with an error message
+ */
 - (void)stopLocalMediaWithMeidaID:(NSString * _Nonnull)mediaID callback:(void (^ _Null_unspecified) (NSError * _Nullable error))callback;
 
+/*!
+ @method
+ @abstract Toggle a local media by the media id
+ @param mediaID The unique media id of this Skylink media object
+ @param isPause To pause/resume the local media
+ @param callback Skylink callback with an error message
+ */
 - (void)toggleLocalMeidaWithMeidaID:(NSString * _Nonnull)mediaID isPause:(BOOL)isPause callback:(void (^ _Null_unspecified) (NSError * _Nullable error))callback;
 
+/*!
+ @method
+ @abstract Mute/Unmute a local media by the media id
+ @param mediaID The unique media id of this Skylink media object
+ @param mute To mute/unmute the local media
+ @param callback Skylink callback with an error message
+ */
 - (void)muteLocalMediaWithMeidaID:(NSString * _Nonnull)mediaID mute:(BOOL)mute callback:(void (^ _Null_unspecified) (NSError * _Nullable error))callback;
-// pass the custom video capture
+
+/*!
+ @method
+ @abstract If you want to implement camera video capture in your app, you just pass the custom video capture into Skylink framework here
+ @param videoCapturer The custom video capturer
+ @param callback Skylink callback with an error message
+ */
+#ifdef Custom_Video
 - (void)sendVideoCapturer:(RTCCameraVideoCapturer * _Nonnull)videoCapturer callback:(void (^ _Null_unspecified) (NSError * _Nullable error))callback;;
+#endif
+/*!
+ @method
+ @abstract If you want to implement screen sharing in your app, once you obtain the sample buffer, you need to send the sample buffer into Skylink framework
+ @param sampleBuffer The sampleBuffer you captured by your app
+ */
+- (void)processSampleBuffer:(CMSampleBufferRef _Nonnull)sampleBuffer;
 
 @end
