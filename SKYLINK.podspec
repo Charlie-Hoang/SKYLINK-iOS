@@ -16,6 +16,9 @@ Pod::Spec.new do |s|
   s.license          = 'MIT'
   s.author           = { "Temasys Communications" => "xiangrong@temasys.io", "Temasys Communications" => "yuxi.liu@temasys.io"}
   s.source           = { :git => "https://github.com/Temasys/SKYLINK-iOS.git", :tag => s.version.to_s }
+  s.subspec 'WebRTC' do |cs|
+    cs.dependency 'GoogleWebRTC'
+  end
 
   s.platform     = :ios, '9.0'
   s.requires_arc = true
