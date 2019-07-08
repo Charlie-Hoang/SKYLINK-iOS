@@ -28,9 +28,9 @@ Pod::Spec.new do |s|
   s.vendored_frameworks = 'framework/SKYLINK.framework', 'framework/WebRTC.framework'
   s.preserve_paths = 'framework/*'
 
-  s.default_subspec = 'Core'
+  # s.default_subspec = 'Core'
 
-  s.subspec 'Core' do |cs|
-    cs.dependency 'GoogleWebRTC'
-  end
+  # s.subspec 'Core' do |cs|
+  #   cs.dependency 'GoogleWebRTC'
+  # end
 end
