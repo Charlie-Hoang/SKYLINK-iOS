@@ -25,8 +25,8 @@ Pod::Spec.new do |s|
   # s.dependency 'GoogleWebRTC'
   s.libraries = 'c', 'icucore', 'sqlite3', 'stdc++'
   s.xcconfig = { 'OTHER_LDFLAGS' => '-lObjC' }
-  s.vendored_frameworks = 'SKYLINK.framework'
-  s.preserve_paths = 'SKYLINK.framework'
+  s.vendored_frameworks = 'framework/SKYLINK.framework', 'framework/WebRTC.framework'
+  s.preserve_paths = 'framework/*'
 
   s.default_subspec = 'Core'
 
