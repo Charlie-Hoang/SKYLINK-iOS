@@ -22,7 +22,7 @@ Pod::Spec.new do |s|
 
   s.frameworks = 'AudioToolbox', 'AVFoundation', 'CFNetwork', 'CoreAudio', 'CoreGraphics', 'CoreMedia', 'Foundation', 'GLKit', 'UIKit', 'VideoToolbox'
   s.dependency 'Socket.IO-Client-Swift', '~> 12.1.3'
-  s.dependency 'GoogleWebRTC'
+  # s.dependency 'GoogleWebRTC'
   s.libraries = 'c', 'icucore', 'sqlite3', 'stdc++'
   s.xcconfig = { 'OTHER_LDFLAGS' => '-lObjC' }
   s.vendored_frameworks = 'SKYLINK.framework'
@@ -31,6 +31,6 @@ Pod::Spec.new do |s|
   s.default_subspec = 'Core'
 
   s.subspec 'Core' do |cs|
-    cs.dependency 'WebRTC', :git => 'https://github.com/lyx501135/WebRTC.git'
+    cs.dependency 'GoogleWebRTC'
   end
 end
